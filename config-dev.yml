@@ -1,0 +1,23 @@
+# The config file used only for local development purposes.
+#
+# Reminder: you don't need put everything here; just the top-level properties for which you want to override
+#   the values inherited from config.yml.
+
+# Note: you can run a local proxy to the CloudSQL instance or a local Postgresql server, or even a local Mongo db.
+DATABASE_URI: postgres://postgres:postgres@localhost:5433/ahope
+
+DATABASE_OPTIONS: {}
+# empty it out any database options that the production version of the yml file may contain.
+
+SERVER_URL: http://localhost:8080/parse
+
+ALLOW_CLIENT_CLASS_CREATION: true
+
+DASHBOARD_SETTINGS:
+  # If a different Parse server is used, then uncomment the following section.
+  # apps:
+  #   - serverUrl: https://an_alternative_parse_server/parse
+  users:
+    - user: ahope-admin
+      pass: ahope
+  useEncryptedPasswords: false

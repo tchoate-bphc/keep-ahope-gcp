@@ -1,0 +1,113 @@
+<html lang="en">
+  <head>
+    <meta name="google-signin-scope" content="profile email">
+    <meta name="google-signin-client_id" content="35758277434-m0ammk4hoi6l6g8dbjm82q2fk72624i3.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="https://requirejs.org/docs/release/2.2.0/minified/require.js"></script>
+  </head>
+  <body>
+    <style>
+      .tall {margin-top: 16px;}
+    </style>
+    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+    <div class="tall"><input id="clickMe" type="button" value="Do a simple query" onclick="tryQuery();" /></div>    
+    <div class="tall"><input id="clickMe2" type="button" value="write a record" onclick="tryCreate();" /></div>    
+    <div class="tall"><a href="#" onclick="signOut();">Sign out</a></div>
+    <script>
+      var user;
+      var parse;
+      const url = 'https://unpkg.com/parse@1.11.1/dist/parse.js';
+      // the current:
+      // 'https://npmcdn.com/parse/dist/parse.js';
+
+      require([url], function (parse) {
+            parse.initialize("ahope-test-app");
+            parse.serverURL = '/parse';
+            window.parse = parse;
+      });
+
+      function signOut() {
+        var auth2 = gapi.auth2.getAuthInstance();
+        auth2.signOut().then(function () {
+          console.log('User signed out.');
+          // user._logOutWithAll();
+          parse.User.logOut();
+          user = null;
+        });
+      }
+
+      function onSignIn(googleUser) {
+        // Useful data for your client-side scripts:
+        var profile = googleUser.getBasicProfile();
+        console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+        console.log('Full Name: ' + profile.getName());
+        console.log('Given Name: ' + profile.getGivenName());
+        console.log('Family Name: ' + profile.getFamilyName());
+        console.log("Image URL: " + profile.getImageUrl());
+        console.log("Email: " + profile.getEmail());
+
+        // The ID token you need to pass to your backend:
+        var google_id = profile.getId();
+        var id_token = googleUser.getAuthResponse().id_token;
+        console.log("ID Token: " + id_token);
+
+        var authResp = googleUser.getAuthResponse();
+        user = new parse.User();
+        user.setEmail(profile.getEmail());
+        user._linkWith('google', { authData: {'id': google_id, 'id_token': authResp.id_token, 'access_token': authResp.access_token } });
+
+        //alert(parse.Session.isCurrentSessionRevocable() ? "session is revocable" : "session is irrevocable");
+        //parse.User.enableRevocableSession().then(function () {parse.User_upgradeToRevocableSession();});
+
+        user.givenName = profile.getGivenName();
+        user.lastName = profile.getFamilyName();
+        user.fullName = user.givenName.concat(' ', user.lastName);
+      };
+
+      function tryQuery() {
+        var GameScore = parse.Object.extend("GameScore");
+        var query = new parse.Query(GameScore);
+        // in reality, if user hasn't logged in, we shouldn't even do query
+        // but just to demo the rejection based on permission rules.
+        query.equalTo("playerName", user ? user.fullName : "Sean Plott");
+        query.find({
+            success: function(results) {
+                alert("Successfully retrieved " + results.length + " scores, and the last 3 will be displayed.");
+                // Do something with the returned Parse.Object values
+                results.reverse();  // to display the latest rows.
+                for (var i = 0; i < Math.min(3, results.length); i++) {
+                    var object = results[i];
+                    alert(object.id + ' - ' + object.get('playerName') + ': ' + object.get('score'));
+                    }
+            },
+            error: function(error) {
+                alert("Error: " + error.code + " " + error.message);
+            }
+        });
+      }
+
+      function tryCreate() {
+        var GameScore = parse.Object.extend("GameScore");
+        var gameScore = new GameScore();
+
+        gameScore.set("score", Math.floor((Math.random() * 10000) + 1));
+        // shouldn't even try if user is null, but just to demo the permission rules.
+        gameScore.set("playerName", user ? user.fullName : "Derek Cheter");
+        gameScore.set("cheatMode", false);
+
+        gameScore.save().then((gameScore) => {
+            // Execute any logic that should take place after the object is saved.
+            alert('New object created with objectId: ' + gameScore.id);
+          },
+          (error) => {
+            // Execute any logic that should take place if the save fails.
+            // error is a Parse.Error with an error code and message.
+            alert('Failed to create new object, with error code: ' + error.message);
+          }
+        );
+      }
+
+    </script>
+
+  </body>
+</html>
