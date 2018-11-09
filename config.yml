@@ -25,7 +25,7 @@ CLOUDSQL_INSTANCE_ID: ahope-postgres-dev
 
 # DATABASE_CREDENTIALS is the CloudSQL database user and the password, separated by a colon.
 # This property is mandatory unless DATABASE_URI is defined (which includes it)
-DATABASE_CREDENTIALS: postgres:ki0YfYUzZHOQ5l4v
+DATABASE_CREDENTIALS: postgres:ahopepostgres
 
 # DATABASE_NAME is the name of the database inside a CloudSQL instance.  A CloudSQL instance is just an instance
 # of PostgreSQL server, which is capable of hosting multiple databases inside it, and hence a database name
@@ -35,7 +35,7 @@ DATABASE_NAME: ahope
 
 # DATABASE_URI, when undefined here, is formed as 
 #   postgres://$DATABASE_CREDENTIALS@/cloudsql/$CLOUDSQL_CONNECTION_NAME/$DATABASE_NAME
-# DATABASE_URI: postgres://postgres:ki0YfYUzZHOQ5l4v@/cloudsql/keep-ahope:us-east1:ahope-postgres-dev/ahope
+# DATABASE_URI: postgres://postgres:ahopepostgres@/cloudsql/keep-ahope:us-east1:ahope-postgres-dev/ahope
 
 # DATABASE_OPTIONS, leave it undefined for Cloud environment.
 #DATABASE_OPTIONS:
@@ -51,7 +51,7 @@ DATABASE_NAME: ahope
 
 # PARSE_MOUNT_PATH: /parse
 
-# SERVER_URL: https://ahope-parse-poc.appspot.com/parse
+# SERVER_URL: https://keep-ahope.appspot.com/parse
 
 # Get the OAuth Client ID here:
 # https://console.cloud.google.com/apis/credentials?project=keep-ahope&orgonly=true&supportedpurview=organizationId
