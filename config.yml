@@ -43,6 +43,10 @@ DATABASE_NAME: ahope
 #  host: /cloudsql/keep-ahope:us-east1:ahope-postgres-dev:ahope
 #  database: ahope
 
+# APP_ID: applicationId, a unique id identifying a Parse application on a Parse server.
+# For our purposes, it is arbitrary as long as the front end uses the same applicationId when calling Parse.initialize().
+APP_ID: AHOPEPARSESERVER
+
 # If no MASTER_KEY is configured, then a randomly generated one will be used.  This is recommended.
 # MASTER_KEY: ahope-test-app-master-key-keep-it-secret
 
