@@ -84,8 +84,20 @@ if (!serverConfig.databaseOptions) {
   {
     protocol: 'socket:',
     host: '/cloudsql/'.concat(connectionName || getConnectionName()),
-    database: databaseName || nconf.get('DATABASE_NAME')
+    database: databaseName || nconf.get('DATABASE_NAME'),
+    // idleTimeoutMillis: 60000,
+    application_name: 'ParseServer',  // this shows up in column "application_name" in pg_catalog.pg_stat_activity view.
   };
+}
+
+// Setting poolSize.
+// See https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax, which also has a link to 
+// the default values: https://github.com/brianc/node-postgres/blob/master/lib/defaults.js
+// The default values listed there seem questionable (perhaps overridden somewhere) as the idle timeout
+// is definitely not 30 seconds by default in my testing.
+if (!serverConfig.databaseOptions.max) {
+  const size = nconf.get('DATABASE_CONNECTION_POOL_SIZE');
+  if (size) serverConfig.databaseOptions.max = size;
 }
 
 // oauthClientId is to be passed onto the client side to allow user authentication using Google sign-in.

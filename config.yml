@@ -43,6 +43,23 @@ DATABASE_NAME: ahope
 #  host: /cloudsql/keep-ahope:us-east1:ahope-postgres-dev:ahope
 #  database: ahope
 
+# DATABASE_CONNECTION_POOL_SIZE defines the connection pool size used by Parse Server, which should not exceed
+# what's given in the PostgreSQL section in https://cloud.google.com/sql/docs/quotas#fixed-limits, based on
+# the amount of RAM configured to the SQL instance.  
+#
+# Note the foot note there:
+#
+#    Cloud SQL for PostgreSQL reserves up to six of these connections for internal operations.
+#
+# PostgreSQL reserves a few (by default 3) connections for the superuser. See
+#   https://www.postgresql.org/docs/9.6/runtime-config-connection.html#GUC-SUPERUSER-RESERVED-CONNECTIONS
+#
+# In addition, in the "App Engine Limits" section in https://cloud.google.com/sql/docs/quotas
+# Each App Engine instance running in a standard environment cannot have more than 100 concurrent connections
+# Therefore, make sure this limit is observed as well.
+#
+DATABASE_CONNECTION_POOL_SIZE: 16
+
 # APP_ID: applicationId, a unique id identifying a Parse application on a Parse server.
 # For our purposes, it is arbitrary as long as the front end uses the same applicationId when calling Parse.initialize().
 APP_ID: AHOPEPARSESERVER
