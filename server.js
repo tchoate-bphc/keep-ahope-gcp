@@ -133,6 +133,7 @@ if (dashboardSettings) {
   app.use('/dashboard', dashboard); 
 }
 
+/*
 app.get('/', (req, res) => {
   if (dashboardSettings) {
     res.redirect('/dashboard');
@@ -142,6 +143,15 @@ app.get('/', (req, res) => {
 });
 
 app.use('/static', express.static('static'))
+
+ */
+
+app.use('/front-end', express.static('front-end'))
+
+app.get('/', (req, res) => {
+  res.redirect('/front-end');
+});
+
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

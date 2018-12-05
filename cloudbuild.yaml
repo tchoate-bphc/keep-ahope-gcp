@@ -1,4 +1,14 @@
 steps:
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', '--depth', '1', '--branch', 'develop', 'https://github.com/evandana/keep-ahope', 'front-end-src']
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['install']
+  dir: 'front-end-src'
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['run', 'build']
+  dir: 'front-end-src'
+- name: 'busybox'
+  args: ['mv', '-f', 'front-end-src/build', './front-end']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy', 'app.standard.yaml']
 timeout: '1600s'

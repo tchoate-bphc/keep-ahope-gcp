@@ -29,3 +29,6 @@ config-dev.yml
 
 # other local files
 gcloud_excluded/
+
+#front end source code doesn't need to be deployed.
+front-end-src/
