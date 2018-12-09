@@ -53,7 +53,6 @@ const serverConfig = {
 
 serverConfig.serverURL = nconf.get('SERVER_URL') || 'https://'.concat(projectId = nconf.get('PROJECT_ID'), '.appspot.com', serverConfig.mountPath),
 
-
 serverConfig.databaseURI = nconf.get('DATABASE_URI');
 
 function getConnectionName()
@@ -109,6 +108,10 @@ console.log("databaseOptions is: " + JSON.stringify(serverConfig.databaseOptions
 
 const parseServer = new ParseServer(serverConfig);
 
+app.get('/dummy.js', function (req, res) {
+  res.type('application/javascript').send("console.log('hello from the dummy service worker');");
+})
+
 // Mount the Parse API server middleware to /parse
 app.use(serverConfig.mountPath || '/parse', parseServer);
 
@@ -146,11 +149,18 @@ app.use('/static', express.static('static'))
 
  */
 
-app.use('/front-end', express.static('front-end'))
+/*
+app.use('/front-end', express.static('front-end'));
 
 app.get('/', (req, res) => {
   res.redirect('/front-end');
 });
+*/
+
+// Mount the front-end to the root; otherwise, image files couldn't be found.
+// Given that the dashboard and the parse server are mounted in distinct paths,
+// they should not be "masked" by the front end resources.
+app.use(express.static('front-end'));
 
 
 const PORT = process.env.PORT || 8080;

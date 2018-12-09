@@ -1,5 +1,5 @@
 # The overall Google Cloud Project ID.  This property is mandatory
-# I case the GCP project name is different from the ID, make sure ID is used here.
+# In case the GCP project name is different from the ID, make sure ID is used here.
 PROJECT_ID: keep-ahope
 
 # --------------------------------------------------------------------------------------
