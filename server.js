@@ -21,6 +21,7 @@ const nconf = require('nconf');
 const ParseServer = require('parse-server').ParseServer;
 const path = require('path');
 const yml = require('js-yaml');
+const setParseSchema = require('./parseSchema');
 const ymlFormatter = { parse: yml.safeLoad, stringify: yml.safeDump };
 
 var projectId, connectionName, databaseName;
@@ -162,10 +163,13 @@ app.get('/', (req, res) => {
 // they should not be "masked" by the front end resources.
 app.use(express.static('front-end'));
 
-
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log('Press Ctrl+C to quit.');
 });
+
+setParseSchema(serverConfig);
+
+
 // [END app]
