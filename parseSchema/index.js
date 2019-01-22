@@ -94,6 +94,19 @@ function setSchemaPermissions(schemaResourceUrl, appId, masterKey)
     }});
 }
 
+/**
+ * This function is the entry point to initialize all AHOPE application-specific database structures,
+ * namely, classes (schemas), roles, and their permissions.
+ * 
+ * @param {*} serverConfig The configuration about the Parse server, including app id, master key, and to a lesser degree of usefulness,
+ * the public URL of the Parse server.
+ * 
+ * @param {*} parseLocalUrl An optional parameter, when present, override serverConfig.serverURL.  The typical use case is to use a
+ * localhost based URL, rather than the public Parse server URL to access the Parse server.  The significance here is not performance,
+ * but rather to ensure the initialization code here, in possession of the master key that is only guaranteed to be valid for the Parse
+ * server in the same GCP AppEngine Service instance, is authenticated.  If the public URL were used, REST requests may be routed to 
+ * other instances, and (at the time of writing) the master key may not work there.
+ */
 function setParseSchema (serverConfig, parseLocalUrl) {
 
   Parse.initialize(serverConfig.appId, null, serverConfig.masterKey);
@@ -123,11 +136,18 @@ function setParseSchema (serverConfig, parseLocalUrl) {
 
   (1) A Parse.Schema only represents data needed to make a request about a Parse Schema.  A better name would be SchemaRequest.
   
-  (2) As such, fields added by Parse.Schema.prototype.addField() function and its ilks only represent intention to add/create them, and nothing else.
-      For example, the .get() method doesn't change any such "fields" in the Schema object based on the result returned from the Parse server.
+  (2) As such, fields added by Parse.Schema.prototype.addField() function and its ilks only represent intention to add/create them, and nothing more.
+      For example, the .get() method doesn't update (synchronize) any such "fields" in the in-memory Schema object, based on the result returned from 
+      the Parse server.
   
   (3) Starting from Parse v2, standard Javascript Promise has replaced Parse.Promise, which unfortunately is still used in sample code
       in ParsePlatform documentation as of this writing.
+
+  (4) It might be noted by observant developers/reviewers that in the code below, save()/update()/get() calls are made without an "options" parameter
+      specifying an authentication mode.  This is because, according to https://docs.parseplatform.org/js/guide/#schema, Schema is special in that
+      Master Key is always used, and hence such an options parameter is not useful.  This is in contrast to other classes such as Role, where a 
+      request method (i.e., a method that causes a REST request to be sent to Parse server) if invoked without option seems to be interpreted as
+      accessing as an unauthenticated user (i.e. public).
  */
   const contactSchema = new Parse.Schema('contacts');
 
