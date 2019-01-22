@@ -112,19 +112,23 @@ app.get('/dummy.js', function (req, res) {
   res.type('text/javascript').send("console.log('hello from the dummy service worker');");
 })
 
+const PORT = process.env.PORT || 8080;
+const PARSE_MOUNT_PATH = serverConfig.mountPath || '/parse';
+
 // Note: this endpoint triggers AHOPE application-specific initialization.
 // The reason why "/parse/ahopeinit" is selected is that in the front-end code, we already
 // allow requests to /parse/* and /dashboard/* to not to be intercepted by the service-worker.
 // If we choose to use "/ahopeinit", then we need to change the front-end code.
-app.get('/parse/ahopeinit', function (req, res) {
+app.get(PARSE_MOUNT_PATH + '/ahopeinit', function (req, res) {
   console.log("Request to initialize has been received.");
   res.type('text/plain').send("Schema initialization will start.");
   const setParseSchema = require('./parseSchema');
-  setParseSchema(serverConfig);
+  const parseLocalUrl = "http://localhost:" + PORT + PARSE_MOUNT_PATH;
+  setParseSchema(serverConfig, parseLocalUrl);
 });
 
 // Mount the Parse API server middleware to /parse
-app.use(serverConfig.mountPath || '/parse', parseServer);
+app.use(PARSE_MOUNT_PATH, parseServer);
 
 const dashboardSettings = nconf.get('DASHBOARD_SETTINGS');
 
@@ -173,7 +177,6 @@ app.get('/', (req, res) => {
 // they should not be "masked" by the front end resources.
 app.use(express.static('front-end'));
 
-const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log('Press Ctrl+C to quit.');

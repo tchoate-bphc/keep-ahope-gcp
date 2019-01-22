@@ -36,7 +36,7 @@ function createRole(roleName, ...members)
   // can't use Parse.Object.extend("Role") in place of Parse.Role here to query roles.
   return (new Parse.Query(Parse.Role))
     .equalTo("name", roleName)
-    .first()
+    .first(options)
     .then(role => (role !== undefined) ? Promise.resolve(role) : (new Parse.Role(roleName, roleAcl)).save(null, options))
     .then(role => {
       if (members.length > 0) {
@@ -94,10 +94,10 @@ function setSchemaPermissions(schemaResourceUrl, appId, masterKey)
     }});
 }
 
-function setParseSchema (serverConfig) {
+function setParseSchema (serverConfig, parseLocalUrl) {
 
   Parse.initialize(serverConfig.appId, null, serverConfig.masterKey);
-  Parse.serverURL = serverConfig.serverURL ;
+  Parse.serverURL = parseLocalUrl || serverConfig.serverURL ;
 
   // We are going to create four roles for AHOPE classes:
   // (1) a Reader can read, but not write.
@@ -111,12 +111,12 @@ function setParseSchema (serverConfig) {
 
   var adminRole, editorRole;
 
-  var promise = createRole("Administrator")
+  const promiseToCreateAllRoles = createRole("Administrator")
     .then(role => createRole("Editor", adminRole = role))
     .then(role => createRole("Writer", editorRole = role))
     .then(() => createRole("Viewer", editorRole));
 
-  allPromises.push(promise);
+  allPromises.push(promiseToCreateAllRoles);
   
 /*
   Notes:
@@ -131,7 +131,7 @@ function setParseSchema (serverConfig) {
  */
   const contactSchema = new Parse.Schema('contacts');
 
-  promise = contactSchema
+  const promiseToCreateContactsClass = contactSchema
     // fields are listed by type and in alphabetical order.  In dashboard you may move columns around to examine.
     .addArray('otherDrugs')
     .addArray('otherDrugsAggregate')
@@ -166,11 +166,11 @@ function setParseSchema (serverConfig) {
     .then(existingSchemaData => addAnyNewFieldsToSchema(existingSchemaData, contactSchema))
     .catch(error => ((error.code === Parse.Error.INVALID_CLASS_NAME) ? contactSchema.save() : Promise.reject(error)));
 
-  allPromises.push(promise);
+  allPromises.push(promiseToCreateContactsClass);
 
   const eventSchema = new Parse.Schema('event');
 
-  promise = eventSchema
+  const promiseToCreateEventClass = eventSchema
     // fields are listed by type and in alphabetical order.  In dashboard you may move columns around to examine.
     .addArray('otherDrugs')
     .addArray('referrals')
@@ -212,14 +212,14 @@ function setParseSchema (serverConfig) {
     .then(existingSchemaData => addAnyNewFieldsToSchema(existingSchemaData, eventSchema))
     .catch(error => ((error.code === Parse.Error.INVALID_CLASS_NAME) ? eventSchema.save() : Promise.reject(error)));
 
-  allPromises.push(promise);
+  allPromises.push(promiseToCreateEventClass);
 
   Promise.all(allPromises)
     .then(() => {
-      return setSchemaPermissions(serverConfig.serverURL + "/schemas/contacts", serverConfig.appId, serverConfig.masterKey);
+      return setSchemaPermissions(Parse.serverURL + "/schemas/contacts", serverConfig.appId, serverConfig.masterKey);
     })
     .then(() => {
-      return setSchemaPermissions(serverConfig.serverURL + "/schemas/event", serverConfig.appId, serverConfig.masterKey);
+      return setSchemaPermissions(Parse.serverURL + "/schemas/event", serverConfig.appId, serverConfig.masterKey);
     })
     .catch(error => {
       console.log(error);
