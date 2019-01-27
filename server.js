@@ -145,10 +145,16 @@ const PARSE_MOUNT_PATH = serverConfig.mountPath || '/parse';
 // If we choose to use "/ahopeinit", then we need to change the front-end code.
 app.get(PARSE_MOUNT_PATH + '/ahopeinit', function (req, res) {
   console.log("Request to initialize has been received.");
-  res.type('text/plain').send("Schema initialization will start.");
+  // res.type('text/plain').send("Schema initialization will start.");
   const setParseSchema = require('./parseSchema');
   const parseLocalUrl = "http://localhost:" + PORT + PARSE_MOUNT_PATH;
-  setParseSchema(serverConfig, parseLocalUrl);
+  setParseSchema(serverConfig, parseLocalUrl)
+  .then(() => {
+    res.type('text/plain').send("Schema initialization completed.");
+  })
+  .catch(() => {
+    res.status(500).type('text/plain').send("Schema initialization failed.");
+  });
 });
 
 // Mount the Parse API server middleware to /parse

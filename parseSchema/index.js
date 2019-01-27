@@ -234,7 +234,7 @@ function setParseSchema (serverConfig, parseLocalUrl) {
 
   allPromises.push(promiseToCreateEventClass);
 
-  Promise.all(allPromises)
+  return Promise.all(allPromises)
     .then(() => {
       return setSchemaPermissions(Parse.serverURL + "/schemas/contacts", serverConfig.appId, serverConfig.masterKey);
     })
@@ -243,6 +243,7 @@ function setParseSchema (serverConfig, parseLocalUrl) {
     })
     .catch(error => {
       console.log(error);
+      return Promise.reject(error);
     })
 }
 
