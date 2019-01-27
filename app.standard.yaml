@@ -24,6 +24,7 @@ handlers:
   
 env_variables:
   # PORT: 443
+  MK_SALT: "%%mk_salt_value%%"
 beta_settings:
   # The connection name of your instance, available by using
   # 'gcloud beta sql instances describe [INSTANCE_NAME]' or from

@@ -23,7 +23,7 @@ const path = require('path');
 const yml = require('js-yaml');
 const ymlFormatter = { parse: yml.safeLoad, stringify: yml.safeDump };
 
-var projectId, connectionName, databaseName;
+var connectionName, databaseName;
 
 if (process.env.NODE_ENV === 'production') {
   require('@google-cloud/debug-agent').start();
@@ -35,6 +35,24 @@ nconf.argv().env()
 
 const app = express();
 
+const projectId = process.env.GOOGLE_CLOUD_PROJECT || nconf.get('PROJECT_ID');
+
+let masterKey = nconf.get('MASTER_KEY');
+
+if (!masterKey) {
+  const crypto = require('crypto');
+  if (process.env.GAE_VERSION && process.env.MK_SALT) {
+    // this will generate a master key specific to a version, but shared by multiple instances of a version.
+    // assuming process.env.MK_SALT is version specific (which should be as it is generated at build-time).
+
+    // scryptSync() is unavailable on node 8.
+    // masterKey = crypto.scryptSync(process.env.GAE_VERSION, process.env.MK_SALT, 64, {N: 1024}).toString('base64');
+    masterKey = crypto.createHmac('sha256', process.env.MK_SALT).update(process.env.GAE_VERSION).digest('base64');
+  } else {
+    masterKey = crypto.randomBytes(48).toString('base64');
+  }
+}
+
 // Reference: https://parseplatform.org/parse-server/api/master/ParseServerOptions.html
 const serverConfig = {
   cloud: nconf.get('CLOUD_PATH') || path.join(__dirname, '/cloud/main.js'),
@@ -42,7 +60,7 @@ const serverConfig = {
   // we are only deploying one app.
   appId: nconf.get('APP_ID') || 'AHOPE-App-in-Parse',
   // An empty or undefined master key indicates that Parse server and Parse Dashboard are collocated and can use a randomly generated password
-  masterKey: nconf.get('MASTER_KEY') || require('crypto').randomBytes(48).toString('base64'),
+  masterKey: masterKey,
   fileKey: nconf.get('FILE_KEY'),
   mountPath: nconf.get('PARSE_MOUNT_PATH') || '/parse',
   auth: { google: true },
@@ -50,15 +68,21 @@ const serverConfig = {
   allowClientClassCreation: nconf.get('ALLOW_CLIENT_CLASS_CREATION') || false
 }
 
+serverConfig.serverURL = nconf.get('SERVER_URL') || 'https://'.concat(projectId, '.appspot.com', serverConfig.mountPath);
 
-serverConfig.serverURL = nconf.get('SERVER_URL') || 'https://'.concat(projectId = nconf.get('PROJECT_ID'), '.appspot.com', serverConfig.mountPath),
+// Generate a version-specific URL to be used by the Dashboard, so that it targets the version where it is from.
+// See https://cloud.google.com/appengine/docs/standard/java/how-requests-are-routed#targeted_routing
+const serviceId = process.env.GAE_SERVICE || 'default';   // the id of the AppEngine service this piece of code is running in.
+const versionSpecificServerUrl = nconf.get('SERVER_URL') || (process.env.GAE_VERSION ? 'https://'.concat(process.env.GAE_VERSION, '-dot-', serviceId, '-dot-', projectId, '.appspot.com', serverConfig.mountPath) : serverConfig.serverURL);
+
+console.info(`Parse Server URL to be used by Dashboard is: ${versionSpecificServerUrl}`);
 
 serverConfig.databaseURI = nconf.get('DATABASE_URI');
 
 function getConnectionName()
 {
   return nconf.get('CLOUDSQL_CONNECTION_NAME') || 
-    [(projectId || nconf.get('PROJECT_ID')), nconf.get('CLOUDSQL_REGION'), nconf.get('CLOUDSQL_INSTANCE_ID')].join(':')
+    [projectId, nconf.get('CLOUDSQL_REGION'), nconf.get('CLOUDSQL_INSTANCE_ID')].join(':') ;
 }
 
 if (!serverConfig.databaseURI) {
@@ -137,7 +161,7 @@ if (dashboardSettings) {
 
   const appSettings = dashboardSettings.apps[0];
 
-  if (!appSettings.serverURL) appSettings.serverURL = serverConfig.serverURL;
+  if (!appSettings.serverURL) appSettings.serverURL = versionSpecificServerUrl; // serverConfig.serverURL;
   if (!appSettings.appId) appSettings.appId = serverConfig.appId;
   if (!appSettings.masterKey) appSettings.masterKey = serverConfig.masterKey;
   if (!appSettings.appName) appSettings.appName = "AHOPE Administrators Dashboard";

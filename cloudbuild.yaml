@@ -9,6 +9,10 @@ steps:
   dir: 'front-end-src'
 - name: 'busybox'
   args: ['mv', '-f', 'front-end-src/build', './front-end']
+# Replace a token/placeholder in the deployment config yaml file with a build-time-generated base64-encoded random number.
+# note that we need the shell to perform command substitution (which is why a shell is needed), before running sed.
+- name: 'busybox'
+  args: ['ash', '-c', 'sed -i s#%%mk_salt_value%%#$(head -c 48 /dev/urandom | base64)# ./app.standard.yaml']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy', 'app.standard.yaml']
 timeout: '1600s'
