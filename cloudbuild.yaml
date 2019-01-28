@@ -15,4 +15,12 @@ steps:
   args: ['ash', '-c', 'sed -i s#%%mk_salt_value%%#$(head -c 48 /dev/urandom | base64)# ./app.standard.yaml']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy', 'app.standard.yaml']
+  # while the above two steps can be absorbed into the next step since the same (or a superset of, in the case of busybox)
+  # Docker image is used, running them separately yields better logging.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args: ['-c', './post-deploy.sh']
+  env:
+  - 'BUILD_ID=$BUILD_ID'
+  - 'PROJECT_ID=$PROJECT_ID'
 timeout: '1600s'

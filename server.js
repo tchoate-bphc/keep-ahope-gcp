@@ -38,9 +38,10 @@ const app = express();
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || nconf.get('PROJECT_ID');
 
 let masterKey = nconf.get('MASTER_KEY');
+let crypto;
 
 if (!masterKey) {
-  const crypto = require('crypto');
+  if (!crypto) crypto = require('crypto');
   if (process.env.GAE_VERSION && process.env.MK_SALT) {
     // this will generate a master key specific to a version, but shared by multiple instances of a version.
     // assuming process.env.MK_SALT is version specific (which should be as it is generated at build-time).
@@ -143,8 +144,39 @@ const PARSE_MOUNT_PATH = serverConfig.mountPath || '/parse';
 // The reason why "/parse/ahopeinit" is selected is that in the front-end code, we already
 // allow requests to /parse/* and /dashboard/* to not to be intercepted by the service-worker.
 // If we choose to use "/ahopeinit", then we need to change the front-end code.
-app.get(PARSE_MOUNT_PATH + '/ahopeinit', function (req, res) {
+app.post(PARSE_MOUNT_PATH + '/ahopeinit', function (req, res) {
   console.log("Request to initialize has been received.");
+
+  // If we are running in production (i.e., process.env.MK_SALT is set), we want to
+  // prevent any unauthorized actor to request a schema init.
+  // We require an authorization header be present, with Basic as the authentication scheme,
+  // and the password part being the SHA2 hash to MK_SALT (the GCP cloud builder generates
+  // it and therefore is in possession of it).
+  //
+  if (process.env.MK_SALT) {    
+    let authenticated = false ;
+
+    if (req.headers.authorization && req.headers.authorization.toLowerCase().startsWith('basic ')) {
+      const authString = new Buffer(req.headers.authorization.split(" ")[1], 'base64').toString();
+      console.log("Authorization header detected: " + authString);
+      const secretSplit = authString.split(":")
+      if (secretSplit.length > 1)
+      {
+        const secret = secretSplit[1];
+        if (!crypto) crypto = require('crypto');
+        const hash = crypto.createHash('sha256');
+        const expectedSecret = hash.update(process.env.MK_SALT).digest('hex');
+        authenticated = (expectedSecret === secret) ;
+      }  
+    }
+
+    if (false == authenticated) {
+      console.info("Request to initialize schema is rejected as unauthorized.");
+      res.status(401).type('text/plain').send("Unauthorized.");
+      return;
+    }
+  }
+
   // res.type('text/plain').send("Schema initialization will start.");
   const setParseSchema = require('./parseSchema');
   const parseLocalUrl = "http://localhost:" + PORT + PARSE_MOUNT_PATH;

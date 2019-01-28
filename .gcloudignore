@@ -32,3 +32,6 @@ gcloud_excluded/
 
 #front end source code doesn't need to be deployed.
 front-end-src/
+
+#files only needed during deployment
+post-deploy.sh
