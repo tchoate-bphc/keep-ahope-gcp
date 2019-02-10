@@ -1,15 +1,16 @@
 {
-  "name": "appengine-parse-server",
-  "description": "Parse-server sample for Google App Engine",
+  "name": "appengine-parse-server-for-bphc-ahope",
+  "description": "Parse back end for BPHC-AHOPE project, based on Parse-server sample for Google App Engine",
   "version": "0.0.1",
   "private": true,
   "license": "Apache Version 2.0",
-  "author": "Google Inc.",
+  "author": "Google Inc. for Parse-server sample code, AHOPE volunteers for BPHC-AHOPE specific code",
   "engines": {
     "node": "8.x.x"
   },
   "dependencies": {
     "@google-cloud/debug-agent": "^2.6.0",
+    "axios": "^0.18.0",
     "express": "4.16.2",
     "js-yaml": "^3.12.0",
     "nconf": "0.10.0",
