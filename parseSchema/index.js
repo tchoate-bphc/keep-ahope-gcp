@@ -61,10 +61,10 @@ function createRole(roleName, ...members)
  * @return {Promise} Promise that represents the request to set CLPs.
  * @private
  */
-function setSchemaPermissions(schemaResourceUrl, appId, masterKey)
+function setSchemaPermissions(schemaResourceUrl, appId, masterKey, customClp)
 {
   var clp = {
-    "classLevelPermissions": {
+    "classLevelPermissions": customClp || {
       "get": {
         "role:Viewer": true
       },
@@ -234,12 +234,37 @@ function setParseSchema (serverConfig, parseLocalUrl) {
 
   allPromises.push(promiseToCreateEventClass);
 
+  const consentSchema = new Parse.Schema('consent');
+
+  const promiseToCreateConsentClass = consentSchema
+    .addNumber('versionMajor')
+    .addNumber('versionMinor')
+    .addNumber('versionPatch')
+    .addString('text')
+
+    .get()
+    .then(existingSchemaData => addAnyNewFieldsToSchema(existingSchemaData, consentSchema))
+    .catch(error => ((error.code === Parse.Error.INVALID_CLASS_NAME) ? consentSchema.save() : Promise.reject(error)));
+
+  allPromises.push(promiseToCreateConsentClass);
+
   return Promise.all(allPromises)
     .then(() => {
       return setSchemaPermissions(Parse.serverURL + "/schemas/contacts", serverConfig.appId, serverConfig.masterKey);
     })
     .then(() => {
       return setSchemaPermissions(Parse.serverURL + "/schemas/event", serverConfig.appId, serverConfig.masterKey);
+    })
+    .then(() => {
+      // For consent, only an Administrator can add from the dashboard.  So use custom class-level permissions.
+      return setSchemaPermissions(Parse.serverURL + "/schemas/consent", serverConfig.appId, serverConfig.masterKey, {
+        "get": {
+          "role:Viewer": true
+        },
+        "find": {
+          "role:Viewer": true
+        }
+      });
     })
     .catch(error => {
       console.log(error);
