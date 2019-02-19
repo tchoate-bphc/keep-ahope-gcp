@@ -16,6 +16,14 @@
 'use strict';
 
 // [START app]
+if (process.env.GAE_INSTANCE) { // Checking GAE_INSTANCE to run this block only when running on GCP.
+  // Per https://cloud.google.com/debugger/docs/setup/nodejs?hl=en_US, place this to the top.
+  require('@google-cloud/debug-agent').start({allowExpressions: true});
+  // The following dumps the environment variables to the log.
+  // Object.getOwnPropertyNames(process.env).forEach(x => { console.info("process.env." + x + " === " + process.env[x]) ; } );
+  // Note: process.env.GOOGLE_CLOUD_PROJECT should be identical to nconf.get('PROJECT_ID') below.
+}
+
 const express = require('express');
 const nconf = require('nconf');
 const ParseServer = require('parse-server').ParseServer;
@@ -24,10 +32,6 @@ const yml = require('js-yaml');
 const ymlFormatter = { parse: yml.safeLoad, stringify: yml.safeDump };
 
 var connectionName, databaseName;
-
-if (process.env.NODE_ENV === 'production') {
-  require('@google-cloud/debug-agent').start();
-}
 
 nconf.argv().env()
   .file('dev-override', {file: 'config-dev.yml', format: ymlFormatter})
@@ -66,7 +70,11 @@ const serverConfig = {
   mountPath: nconf.get('PARSE_MOUNT_PATH') || '/parse',
   auth: { google: true },
   enableAnonymousUsers: false,
-  allowClientClassCreation: nconf.get('ALLOW_CLIENT_CLASS_CREATION') || false
+  allowClientClassCreation: nconf.get('ALLOW_CLIENT_CLASS_CREATION') || false,
+  // Set logsFolder to null to disable logging to files: otherwise file I/O exception would happen when running on GCP,
+  // and cause the process to exit if uncaught (3rd party dependencies may neglect to handle such exceptions
+  // on the assumption that logging to local files is always safe.)  Logging to local files is useless on GCP anyway.
+  logsFolder: null,
 }
 
 serverConfig.serverURL = nconf.get('SERVER_URL') || 'https://'.concat(projectId, '.appspot.com', serverConfig.mountPath);
