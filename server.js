@@ -248,6 +248,14 @@ app.get('/', (req, res) => {
 app.use(express.static('front-end'));
 
 app.listen(PORT, () => {
+
+  // if we are running locally for development purposes, then initialize the schema unless it is specifically disabled.
+  if (!process.env.GAE_INSTANCE && !nconf.get('DISABLE_SCHEMA_INIT_UPON_START')) {
+    console.info(`Running locally so start schema initialization at ${serverConfig.serverURL}`);
+    require('./parseSchema')(serverConfig);
+    console.info(`If you see error messages with code 103: don't panic, they just mean the database really needs initialization and should have been handled.`);
+  }
+
   console.log(`App listening on port ${PORT}`);
   console.log('Press Ctrl+C to quit.');
 });
