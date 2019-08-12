@@ -1,6 +1,6 @@
 # The overall Google Cloud Project ID.  This property is mandatory
 # In case the GCP project name is different from the ID, make sure ID is used here.
-PROJECT_ID: keep-ahope
+PROJECT_ID: brs-ahope-dev
 
 # --------------------------------------------------------------------------------------
 # It is assumed that the CloudSQL instance we use to store data is in the same project
@@ -13,7 +13,7 @@ CLOUDSQL_REGION: us-east1
 
 # CLOUDSQL_INSTANCE_ID identifies an instance of Google Cloud SQL, which should be viewable at
 # https://console.cloud.google.com/sql/instances.  The left-most column is the instance id.
-CLOUDSQL_INSTANCE_ID: ahope-postgres-dev
+CLOUDSQL_INSTANCE_ID: brs-ahope-inst-dev
 
 # CLOUDSQL_CONNECTION_NAME:
 # An instance's connection name can be viewed in the Overview tab of the "Instance details" page.
@@ -25,13 +25,13 @@ CLOUDSQL_INSTANCE_ID: ahope-postgres-dev
 
 # DATABASE_CREDENTIALS is the CloudSQL database user and the password, separated by a colon.
 # This property is mandatory unless DATABASE_URI is defined (which includes it)
-DATABASE_CREDENTIALS: postgres:ahopepostgres
+DATABASE_CREDENTIALS: postgres:8PHC@dm1n!
 
 # DATABASE_NAME is the name of the database inside a CloudSQL instance.  A CloudSQL instance is just an instance
 # of PostgreSQL server, which is capable of hosting multiple databases inside it, and hence a database name
 # is needed to identify the database to use.
 # This property is mandatory unless DATABASE_URI is defined (which includes it)
-DATABASE_NAME: ahope
+DATABASE_NAME: ahope-dev
 
 # DATABASE_URI, when undefined here, is formed as 
 #   postgres://$DATABASE_CREDENTIALS@/cloudsql/$CLOUDSQL_CONNECTION_NAME/$DATABASE_NAME
@@ -77,7 +77,7 @@ APP_ID: AHOPEPARSESERVER
 # Get the OAuth Client ID here:
 # https://console.cloud.google.com/apis/credentials?project=keep-ahope&orgonly=true&supportedpurview=organizationId
 #
-OAUTH_CLIENT_ID: 888227269181-14qpprrki7r8l9b6gaknd9fle8gkas9k.apps.googleusercontent.com
+OAUTH_CLIENT_ID: 224779111920-tausvu4e2d84ldt8pbvhuv4637tk0rd3.apps.googleusercontent.com
 
 # Whether to allow a client to create classes (custom tables).  Default to false, but can be changed to true during development
 # ALLOW_CLIENT_CLASS_CREATION: false
@@ -88,5 +88,5 @@ DASHBOARD_SETTINGS:
   #   - serverUrl: https://an_alternative_parse_server/parse
   users:
     - user: ahope-admin
-      pass: $2y$12$ssWRVAqcxuumoLZGlaCI1O8NRo36II43VRuiiEaqFIqNjttDGaCiG
+      pass: $2a$10$/Kd3jh1Re8eZ9rIPqnzmGetipxt9lcGA1c5mkWR3QAiPVRck..DSG
   useEncryptedPasswords: true
