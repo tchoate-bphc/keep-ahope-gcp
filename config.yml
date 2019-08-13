@@ -31,7 +31,7 @@ DATABASE_CREDENTIALS: postgres:8PHC@dm1n!
 # of PostgreSQL server, which is capable of hosting multiple databases inside it, and hence a database name
 # is needed to identify the database to use.
 # This property is mandatory unless DATABASE_URI is defined (which includes it)
-DATABASE_NAME: ahope-dev
+DATABASE_NAME: ahopedb-dev
 
 # DATABASE_URI, when undefined here, is formed as 
 #   postgres://$DATABASE_CREDENTIALS@/cloudsql/$CLOUDSQL_CONNECTION_NAME/$DATABASE_NAME
