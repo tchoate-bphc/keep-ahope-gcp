@@ -6,11 +6,8 @@
 trigger:
 - master
 
-#pool:
-#  vmImage: 'ubuntu-latest'
-
 pool:
-  vmImage: 'vs2019-win2016'
+  vmImage: 'ubuntu-latest'
 
 - task: NodeTool@0
   inputs:
